@@ -128,15 +128,10 @@ function scheduler_workbench_module_implements_alter(&$implementations, $hook) {
  * @param stdClass $node
  * @param string $action
  */
-function scheduler_workbench_scheduler_api($node, $action) {
-  switch ($action) {
-    case 'publish':
-      _scheduler_workbench_scheduler_publish($node);
-      break;
-
-    case 'unpublish':
-      _scheduler_workbench_scheduler_unpublish($node);
-      break;
+function scheduler_workbench_scheduler_api(&$node, $action) {
+  $func = "_scheduler_workbench_scheduler_{$action}";
+  if (function_exists($func)) {
+    $func($node);
   }
 }
 
@@ -145,10 +140,8 @@ function scheduler_workbench_scheduler_api($node, $action) {
  *
  * @param stdClass $node
  */
-function _scheduler_workbench_scheduler_unpublish($node) {
-  $state = variable_get('scheduler_unpublish_moderation_state_' . $node->type, '');
-
-  if (FALSE === empty($state)) {
+function _scheduler_workbench_scheduler_unpublish(&$node) {
+  if ($state = variable_get('scheduler_unpublish_moderation_state_' . $node->type, FALSE)) {
     workbench_moderation_moderate($node, $state);
   }
 }
@@ -158,10 +151,9 @@ function _scheduler_workbench_scheduler_unpublish($node) {
  *
  * @param stdClass $node
  */
-function _scheduler_workbench_scheduler_publish($node) {
-  $state = variable_get('scheduler_publish_moderation_state_' . $node->type, '');
-
-  if (FALSE === empty($state)) {
-    workbench_moderation_moderate($node, $state);
+function _scheduler_workbench_scheduler_pre_publish(&$node) {
+  if ($state = variable_get('scheduler_publish_moderation_state_' . $node->type, FALSE)) {
+    $node->workbench_moderation_state_current = $node->workbench_moderation['my_revision']->state;
+    $node->workbench_moderation_state_new = $state;
   }
 }
