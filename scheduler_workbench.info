@@ -3,4 +3,4 @@ description = Integrates the Scheduler module with the Workbench Moderation modu
 package = "Workbench"
 core = 7.x
 dependencies[] = workbench_moderation
-dependencies[] = scheduler
+dependencies[] = scheduler (>=7.x-1.1)
