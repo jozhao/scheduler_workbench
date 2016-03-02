@@ -165,3 +165,22 @@ function _scheduler_workbench_scheduler_pre_publish(&$node) {
     $node->workbench_moderation_state_new = $state;
   }
 }
+
+/**
+ * Implements hook_scheduler_allow_publishing().
+ */
+function scheduler_workbench_scheduler_allow_publishing($node) {
+  $allowed = TRUE;
+  if (module_exists('workbench_moderation') && isset($node->workbench_moderation['current']->state)) {
+    global $user;
+    $current_state = $node->workbench_moderation['current']->state;
+    $published_state = variable_get('scheduler_publish_moderation_state_' . $node->type, workbench_moderation_state_published());
+
+    // If this state is one that the current user can access, return TRUE.
+    if ($permitted_states = workbench_moderation_states_next($current_state, $user, $node)) {
+      $allowed = isset($permitted_states[$published_state]);
+    }
+  }
+
+  return $allowed;
+}
